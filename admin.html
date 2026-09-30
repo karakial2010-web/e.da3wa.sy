@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم | Wedding Studio | e.da3wa</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Pinyon+Script&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1A1614;
+            --sidebar: #211C19;
+            --card: #2A2421;
+            --card-hover: #332C28;
+            --border: rgba(212,175,55,0.15);
+            --gold: #D4AF37;
+            --gold-dark: #A9824A;
+            --text: #E8DED6;
+            --text-soft: #9A8E86;
+            --green: #4ADE80;
+            --red: #F87171;
+            --blue: #60A5FA;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: var(--sidebar);
+            border-left: 1px solid var(--border);
+            padding: 24px 0;
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+        .sidebar-brand {
+            font-family: 'Pinyon Script', cursive;
+            font-size: 28px;
+            color: var(--gold);
+            text-align: center;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+        .sidebar nav { flex: 1; }
+        .sidebar nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 24px;
+            color: var(--text-soft);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all .2s;
+            border-right: 3px solid transparent;
+        }
+        .sidebar nav a:hover { background: var(--card); color: var(--text); }
+        .sidebar nav a.active {
+            background: rgba(212,175,55,0.08);
+            color: var(--gold);
+            border-right-color: var(--gold);
+        }
+        .sidebar nav a .ic { font-size: 18px; width: 24px; text-align: center; }
+        .sidebar-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-soft);
+            text-align: center;
+        }
+        .status-dot {
+            display: inline-block; width: 8px; height: 8px;
+            border-radius: 50%; background: var(--red); margin-left: 6px;
+        }
+        .status-dot.online { background: var(--green); }
+
+        /* Main */
+        .main {
+            flex: 1;
+            margin-right: 240px;
+            padding: 30px;
+            min-height: 100vh;
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .page-header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .page-header p { color: var(--text-soft); font-size: 14px; margin-top: 4px; }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+        .stat-card .label { font-size: 13px; color: var(--text-soft); margin-bottom: 8px; }
+        .stat-card .value { font-size: 32px; font-weight: 700; color: var(--gold); }
+        .stat-card .sub { font-size: 12px; color: var(--text-soft); margin-top: 6px; }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Table */
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th {
+            text-align: right;
+            padding: 12px 16px;
+            color: var(--text-soft);
+            font-weight: 600;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.15);
+        }
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            color: var(--text);
+        }
+        tr:hover td { background: rgba(212,175,55,0.04); }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-green { background: rgba(74,222,128,0.15); color: var(--green); }
+        .badge-red { background: rgba(248,113,113,0.15); color: var(--red); }
+        .badge-gold { background: rgba(212,175,55,0.15); color: var(--gold); }
+        .badge-blue { background: rgba(96,165,250,0.15); color: var(--blue); }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            transition: all .2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-gold { background: var(--gold); color: #1A1614; }
+        .btn-gold:hover { background: var(--gold-dark); transform: translateY(-1px); }
+        .btn-ghost { background: transparent; color: var(--text-soft); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--card-hover); color: var(--text); }
+        .btn-red { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+        .btn-red:hover { background: rgba(248,113,113,0.25); }
+        .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+        /* Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+        label { font-size: 13px; color: var(--text-soft); font-weight: 500; }
+        input, textarea, select {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color .2s;
+            outline: none;
+        }
+        input:focus, textarea:focus, select:focus { border-color: var(--gold); }
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* Log */
+        .log-entry {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 13px;
+            align-items: flex-start;
+        }
+        .log-time {
+            color: var(--text-soft);
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            white-space: nowrap;
+            min-width: 70px;
+        }
+        .log-msg { flex: 1; color: var(--text); }
+        .log-type { font-size: 14px; }
+
+        /* Empty */
+        .empty {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-soft);
+        }
+        .empty .icon { font-size: 48px; margin-bottom: 12px; }
+        .empty p { font-size: 14px; }
+
+        /* Search */
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .toolbar input[type="search"] {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            width: fit-content;
+        }
+        .tab {
+            padding: 8px 20px;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-soft);
+            border: none;
+            font-family: inherit;
+            transition: all .2s;
+        }
+        .tab.active { background: var(--gold); color: #1A1614; }
+        .tab:hover:not(.active) { color: var(--text); }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-right: 4px solid var(--gold);
+            border-radius: 10px;
+            padding: 14px 20px;
+            font-size: 13px;
+            color: var(--text);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            animation: slideIn .3s ease;
+            min-width: 260px;
+        }
+        .toast.success { border-right-color: var(--green); }
+        .toast.error { border-right-color: var(--red); }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: none; opacity: 1; } }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal h3 { font-size: 20px; margin-bottom: 16px; color: var(--gold); }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 60px; }
+            .sidebar-brand { font-size: 16px; }
+            .sidebar nav a span { display: none; }
+            .sidebar nav a { justify-content: center; padding: 14px; }
+            .sidebar-footer { display: none; }
+            .main { margin-right: 60px; padding: 16px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">Wedding</div>
+        <nav>
+            <a href="#" class="active" data-page="dashboard" onclick="go(event,'dashboard')">
+                <span class="ic">📊</span><span>لوحة التحكم</span>
+            </a>
+            <a href="#" data-page="invites" onclick="go(event,'invites')">
+                <span class="ic">💌</span><span>الدعوات</span>
+            </a>
+            <a href="#" data-page="rsvps" onclick="go(event,'rsvps')">
+                <span class="ic">✅</span><span>ردود الحضور</span>
+            </a>
+            <a href="#" data-page="publish" onclick="go(event,'publish')">
+                <span class="ic">🚀</span><span>نشر دعوة</span>
+            </a>
+            <a href="#" data-page="settings" onclick="go(event,'settings')">
+                <span class="ic">⚙️</span><span>الإعدادات</span>
+            </a>
+            <a href="#" data-page="logs" onclick="go(event,'logs')">
+                <span class="ic">📜</span><span>السجلات</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">جاري الفحص...</span>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+
+        <!-- ============ DASHBOARD ============ -->
+        <div class="page active" id="page-dashboard">
+            <div class="page-header">
+                <div>
+                    <h1>لوحة التحكم</h1>
+                    <p>نظرة عامة على منصة Wedding Studio</p>
+                </div>
+                <button class="btn btn-gold" onclick="loadAll()">🔄 تحديث</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">إجمالي الدعوات</div>
+                    <div class="value" id="statInvites">—</div>
+                    <div class="sub">دعوة منشورة</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">إجمالي ردود الحضور</div>
+                    <div class="value" id="statRsvps">—</div>
+                    <div class="sub">رد مسجل</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">سيحضرون</div>
+                    <div class="value" id="statYes" style="color:var(--green)">—</div>
+                    <div class="sub">نعم</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">اعتذروا</div>
+                    <div class="value" id="statNo" style="color:var(--red)">—</div>
+                    <div class="sub">لا</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⚡ إجراءات سريعة</h2>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <button class="btn btn-gold" onclick="go(null,'publish')">💌 نشر دعوة جديدة</button>
+                    <button class="btn btn-ghost" onclick="go(null,'invites')">📋 عرض الدعوات</button>
+                    <button class="btn btn-ghost" onclick="go(null,'rsvps')">✅ إدارة الحضور</button>
+                    <a href="studio/builder.html" class="btn btn-ghost">🎨 فتح المنشئ</a>
+                    <a href="index.html" class="btn btn-ghost">🏠 الموقع الرئيسي</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🕐 آخر النشاطات</h2>
+                <div id="dashLog">
+                    <div class="empty"><div class="icon">📭</div><p>لا توجد نشاطات بعد</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ INVITES ============ -->
+        <div class="page" id="page-invites">
+            <div class="page-header">
+                <div>
+                    <h1>الدعوات المنشورة</h1>
+                    <p>جميع الدعوات المنشورة على المنصة</p>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button class="btn btn-ghost" onclick="loadInvites()">🔄 تحديث</button>
+                    <button class="btn btn-gold" onclick="go(null,'publish')">+ نشر دعوة</button>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <input type="search" id="inviteSearch" placeholder="🔍 بحث باسم العريس أو العروس..." oninput="filterInvites()">
+            </div>
+
+            <div class="card">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>الرقم</th>
+                                <th>العريس</th>
+                                <th>العروس</th>
+                                <th>المناسبة</th>
+                                <th>التاريخ</th>
+                                <th>عدد الصور</th>
+                                <th>تاريخ الإنشاء</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invitesBody">
+                            <tr><td colspan="8" class="empty"><div class="icon">📭</div><p>جاري التحميل...</p></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ RSVPs ============ -->
+        <div class="page" id="page-rsvps">
+            <div class="page-header">
+                <div>
+                    <h1>ردود الحضور</h1>
+                    <p>إدارة تأكيدات الحضور لكل دعوة</p>
+                </div>
+                <button class="btn btn-ghost" onclick="loadAllRsvps()">🔄 تحديث</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">إجمالي الردود</div>
+                    <div class="value" id="rsvpTotal">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">سيحضرون</div>
+                    <div class="value" id="rsvpYes" style="color:var(--green)">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">لن يحضروا</div>
+                    <div class="value" id="rsvpNo" style="color:var(--red)">—</div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="filterRsvp('all',this)">الكل</button>
+                <button class="tab" onclick="filterRsvp('yes',this)">✅ سيحضرون</button>
+                <button class="tab" onclick="filterRsvp('no',this)">❌ لن يحضروا</button>
+            </div>
+
+            <div class="card">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>الرد</th>
+                                <th>الدعوة</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rsvpsBody">
+                            <tr><td colspan="4" class="empty"><div class="icon">📭</div><p>جاري التحميل...</p></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ PUBLISH ============ -->
+        <div class="page" id="page-publish">
+            <div class="page-header">
+                <div>
+                    <h1>نشر دعوة جديدة</h1>
+                    <p>أدخل بيانات الدعوة واضغط النشر</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>💌 بيانات الدعوة</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>اسم العريس *</label>
+                        <input type="text" id="pubGroom" placeholder="مثال: آدم">
+                    </div>
+                    <div class="form-group">
+                        <label>اسم العروس *</label>
+                        <input type="text" id="pubBride" placeholder="مثال: لارا">
+                    </div>
+                    <div class="form-group">
+                        <label>نوع المناسبة</label>
+                        <select id="pubOccasion">
+                            <option value="wedding">زفاف</option>
+                            <option value="engagement">خطوبة</option>
+                            <option value="henna">حنة</option>
+                            <option value="birthday">عيد ميلاد</option>
+                            <option value="graduation">تخرج</option>
+                            <option value="other">أخرى</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>اسم المناسبة</label>
+                        <input type="text" id="pubOccasionName" placeholder="مثال: زفاف لارا وآدم">
+                    </div>
+                    <div class="form-group">
+                        <label>التاريخ</label>
+                        <input type="date" id="pubDate">
+                    </div>
+                    <div class="form-group">
+                        <label>الوقت</label>
+                        <input type="time" id="pubTime" value="18:00">
+                    </div>
+                    <div class="form-group">
+                        <label>المكان</label>
+                        <input type="text" id="pubVenue" placeholder="قاعة / موقع الحفل">
+                    </div>
+                    <div class="form-group">
+                        <label>العنوان</label>
+                        <input type="text" id="pubAddress" placeholder="العنوان التفصيلي">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم الهاتف</label>
+                        <input type="tel" id="pubPhone" placeholder="+963...">
+                    </div>
+                    <div class="form-group">
+                        <label>رابط الخريطة</label>
+                        <input type="url" id="pubMap" placeholder="https://maps.google.com/...">
+                    </div>
+                    <div class="form-group full">
+                        <label>رسالة الدعوة</label>
+                        <textarea id="pubMessage" placeholder="نتشرف بدعوتكم لمشاركتنا فرحتنا..."></textarea>
+                    </div>
+                    <div class="form-group full">
+                        <label>القصة / نبذة (اختياري)</label>
+                        <textarea id="pubStory" placeholder="قصة الحبيبين..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>الطابع</label>
+                        <select id="pubTheme">
+                            <option value="classic">كلاسيكي</option>
+                            <option value="romantic">رومانسي</option>
+                            <option value="modern">عصري</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>موسيقى (رابط MP3)</label>
+                        <input type="url" id="pubMusic" placeholder="https://... أو اتركه فارغاً">
+                    </div>
+                    <div class="form-group full">
+                        <label>روابط الصور (رابط في كل سطر — حتى 9 صور)</label>
+                        <textarea id="pubPhotos" rows="4" placeholder="https://example.com/photo1.jpg&#10;https://example.com/photo2.jpg"></textarea>
+                    </div>
+                </div>
+                <div style="margin-top:20px;display:flex;gap:12px;">
+                    <button class="btn btn-gold" onclick="publishInvite()" id="publishBtn">🚀 نشر الدعوة</button>
+                    <button class="btn btn-ghost" onclick="clearPublishForm()">مسح الحقول</button>
+                </div>
+                <div id="publishResult" style="margin-top:16px;"></div>
+            </div>
+        </div>
+
+        <!-- ============ SETTINGS ============ -->
+        <div class="page" id="page-settings">
+            <div class="page-header">
+                <div>
+                    <h1>الإعدادات</h1>
+                    <p>إعدادات الخادم والاتصال</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🔌 حالة الخادم</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>عنوان الخادم (API Base URL)</label>
+                        <input type="url" id="apiBase" placeholder="http://localhost:3000" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>وضع التخزين</label>
+                        <input type="text" id="storageMode" readonly value="—">
+                    </div>
+                </div>
+                <div style="margin-top:16px;display:flex;gap:10px;">
+                    <button class="btn btn-gold" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+                    <button class="btn btn-ghost" onclick="checkHealth()">🔍 فحص الاتصال</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>ℹ️ معلومات</h2>
+                <div style="font-size:14px;line-height:2;color:var(--text-soft);">
+                    <div>التطبيق: <strong style="color:var(--text)">Wedding Studio</strong></div>
+                    <div>الإصدار: <strong style="color:var(--text)">1.0.0</strong></div>
+                    <div>الخادم: <strong style="color:var(--text)" id="infoServer">—</strong></div>
+                    <div>التخزين: <strong style="color:var(--text)" id="infoStorage">—</strong></div>
+                </div>
+                <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+                    <a href="index.html" class="btn btn-ghost">🏠 الرئيسية</a>
+                    <a href="studio/builder.html" class="btn btn-ghost">🎨 المنشئ</a>
+                    <a href="seal-lang.html" class="btn btn-ghost">🔏 SealScript</a>
+                    <a href="studio/preview.html" class="btn btn-ghost">👁 معاينة الدعوة</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🗑 إدارة البيانات</h2>
+                <p style="font-size:13px;color:var(--text-soft);margin-bottom:14px;">
+                    حذف جميع بيانات الدعوات وردود الحضور. لا يمكن التراجع عن هذه العملية.
+                </p>
+                <button class="btn btn-red" onclick="confirmWipe()">⚠️ مسح جميع البيانات</button>
+            </div>
+        </div>
+
+        <!-- ============ LOGS ============ -->
+        <div class="page" id="page-logs">
+            <div class="page-header">
+                <div>
+                    <h1>سجل النشاطات</h1>
+                    <p>كل ما حدث على المنصة</p>
+                </div>
+                <button class="btn btn-ghost" onclick="clearLogs()">🗑 مسح السجل</button>
+            </div>
+
+            <div class="card">
+                <div id="logsList">
+                    <div class="empty"><div class="icon">📜</div><p>لا توجد سجلات بعد</p></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+        <div class="modal" id="modalBox"></div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ===== Settings =====
+        let API = localStorage.getItem('ws_api') || '';
+        if (!API) {
+            API = window.location.origin;
+        }
+
+        function saveSettings() {
+            const v = document.getElementById('apiBase').value.trim() || window.location.origin;
+            API = v.replace(/\/+$/, '');
+            localStorage.setItem('ws_api', API);
+            toast('تم حفظ الإعدادات', 'success');
+            checkHealth();
+        }
+
+        function api(path) { return API + path; }
+
+        // ===== Toast =====
+        function toast(msg, type) {
+            const c = document.getElementById('toastContainer');
+            const d = document.createElement('div');
+            d.className = 'toast ' + (type || '');
+            d.textContent = msg;
+            c.appendChild(d);
+            setTimeout(() => { d.style.opacity = '0'; d.style.transition = 'opacity .4s'; setTimeout(() => d.remove(), 400); }, 3500);
+        }
+
+        // ===== Logs =====
+        function addLog(type, msg) {
+            const logs = JSON.parse(localStorage.getItem('ws_logs') || '[]');
+            logs.unshift({ t: new Date().toISOString(), type, msg });
+            if (logs.length > 200) logs.length = 200;
+            localStorage.setItem('ws_logs', JSON.stringify(logs));
+            renderLogs();
+            renderDashLog();
+        }
+
+        function renderLogs() {
+            const logs = JSON.parse(localStorage.getItem('ws_logs') || '[]');
+            const el = document.getElementById('logsList');
+            if (!logs.length) {
+                el.innerHTML = '<div class="empty"><div class="icon">📜</div><p>لا توجد سجلات بعد</p></div>';
+                return;
+            }
+            const icons = { invite: '💌', rsvp: '✅', error: '🔴', info: 'ℹ️', delete: '🗑' };
+            el.innerHTML = logs.map(l => `
+                <div class="log-entry">
+                    <span class="log-time">${new Date(l.t).toLocaleTimeString('ar')}</span>
+                    <span class="log-type">${icons[l.type] || '📋'}</span>
+                    <span class="log-msg">${l.msg}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderDashLog() {
+            const logs = JSON.parse(localStorage.getItem('ws_logs') || '[]');
+            const el = document.getElementById('dashLog');
+            if (!logs.length) {
+                el.innerHTML = '<div class="empty"><div class="icon">📭</div><p>لا توجد نشاطات بعد</p></div>';
+                return;
+            }
+            const icons = { invite: '💌', rsvp: '✅', error: '🔴', info: 'ℹ️', delete: '🗑' };
+            el.innerHTML = logs.slice(0, 8).map(l => `
+                <div class="log-entry">
+                    <span class="log-time">${new Date(l.t).toLocaleTimeString('ar')}</span>
+                    <span class="log-type">${icons[l.type] || '📋'}</span>
+                    <span class="log-msg">${l.msg}</span>
+                </div>
+            `).join('');
+        }
+
+        function clearLogs() {
+            localStorage.removeItem('ws_logs');
+            renderLogs();
+            renderDashLog();
+            toast('تم مسح السجل', 'success');
+        }
+
+        // ===== Navigation =====
+        function go(e, page) {
+            if (e) e.preventDefault();
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            document.querySelector(`.sidebar nav a[data-page="${page}"]`)?.classList.add('active');
+            if (page === 'invites') loadInvites();
+            if (page === 'rsvps') loadAllRsvps();
+            if (page === 'dashboard') loadAll();
+        }
+
+        // ===== Health =====
+        async function checkHealth() {
+            try {
+                const r = await fetch(api('/api/health'));
+                const d = await r.json();
+                document.getElementById('statusDot').classList.add('online');
+                document.getElementById('statusText').textContent = 'متصل — ' + (d.db === 'pg' ? 'PostgreSQL' : 'JSON محلي');
+                document.getElementById('storageMode').value = d.db === 'pg' ? 'PostgreSQL' : 'ملفات JSON محلية';
+                document.getElementById('infoStorage').textContent = d.db === 'pg' ? 'PostgreSQL' : 'ملفات JSON محلية';
+                document.getElementById('infoServer').textContent = API;
+                document.getElementById('statInvites').textContent = '—';
+                toast('متصل بالخادم بنجاح', 'success');
+                addLog('info', 'فحص الاتصال بالخادم: متصل (' + (d.db === 'pg' ? 'PostgreSQL' : 'JSON') + ')');
+            } catch (e) {
+                document.getElementById('statusDot').classList.remove('online');
+                document.getElementById('statusText').textContent = 'غير متصل';
+                toast('لا يمكن الاتصال بالخادم. تأكد أن الخادم يعمل: cd server && npm start', 'error');
+            }
+        }
+
+        // ===== Fetch Invites (scan local data dir via API list — we build it) =====
+        // The server doesn't have a list-all endpoint, so we scan via known IDs from localStorage
+        // AND try the server data dir through a special approach.
+
+        // Better: we store published invite IDs locally, plus try to fetch a known list.
+        let invitesCache = JSON.parse(localStorage.getItem('ws_invites') || '[]');
+
+        function saveInviteToLocal(inv) {
+            const idx = invitesCache.findIndex(i => i.id === inv.id);
+            if (idx >= 0) invitesCache[idx] = inv;
+            else invitesCache.unshift(inv);
+            localStorage.setItem('ws_invites', JSON.stringify(invitesCache));
+        }
+
+        async function fetchInvite(id) {
+            try {
+                const r = await fetch(api('/api/invite/' + id));
+                if (!r.ok) return null;
+                return await r.json();
+            } catch { return null; }
+        }
+
+        async function loadInvites() {
+            const body = document.getElementById('invitesBody');
+            try {
+                const r = await fetch(api('/api/invites'));
+                const list = await r.json();
+                if (Array.isArray(list)) {
+                    invitesCache = list;
+                    localStorage.setItem('ws_invites', JSON.stringify(invitesCache));
+                }
+            } catch (e) {
+                // fallback: fetch known IDs individually
+                const ids = invitesCache.map(i => i.id);
+                const fresh = [];
+                for (const id of ids) {
+                    const inv = await fetchInvite(id);
+                    if (inv) fresh.push(inv);
+                }
+                invitesCache = fresh;
+                localStorage.setItem('ws_invites', JSON.stringify(invitesCache));
+            }
+            renderInvites();
+        }
+
+        function filterInvites() {
+            renderInvites();
+        }
+
+        function renderInvites() {
+            const body = document.getElementById('invitesBody');
+            const q = (document.getElementById('inviteSearch')?.value || '').toLowerCase();
+            const list = invitesCache.filter(i =>
+                !q ||
+                (i.groom || '').toLowerCase().includes(q) ||
+                (i.bride || '').toLowerCase().includes(q) ||
+                (i.occasionName || '').toLowerCase().includes(q)
+            );
+
+            if (!list.length) {
+                body.innerHTML = '<tr><td colspan="8" class="empty"><div class="icon">📭</div><p>لا توجد دعوات — انشر دعوة من صفحة النشر</p></td></tr>';
+                document.getElementById('statInvites').textContent = '0';
+                return;
+            }
+
+            document.getElementById('statInvites').textContent = list.length;
+
+            body.innerHTML = list.map((inv, i) => `
+                <tr>
+                    <td><span class="badge badge-gold">#${i + 1}</span></td>
+                    <td><strong>${inv.groom || '—'}</strong></td>
+                    <td><strong>${inv.bride || '—'}</strong></td>
+                    <td>${inv.occasionLabel || inv.occasion || '—'}</td>
+                    <td>${inv.date || '—'}</td>
+                    <td><span class="badge badge-blue">${(inv.photos || []).length}</span></td>
+                    <td>${inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('ar') : '—'}</td>
+                    <td>
+                        <div style="display:flex;gap:6px;">
+                            <a href="${(API || '')}/v/${inv.id}" target="_blank" class="btn btn-ghost btn-sm">👁 عرض</a>
+                            <button class="btn btn-ghost btn-sm" onclick="viewInvite('${inv.id}')">📋 تفاصيل</button>
+                            <button class="btn btn-red btn-sm" onclick="deleteInvite('${inv.id}')">🗑</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function viewInvite(id) {
+            const inv = await fetchInvite(id);
+            if (!inv) { toast('الدعوة غير موجودة', 'error'); return; }
+            const rsvps = await (await fetch(api('/api/rsvps/' + id))).json().catch(() => []);
+            openModal(`
+                <h3>💌 ${inv.groom || ''} & ${inv.bride || ''}</h3>
+                <div style="font-size:14px;line-height:2.2;color:var(--text-soft);">
+                    <div>المناسبة: <strong style="color:var(--text)">${inv.occasionLabel || inv.occasion || '—'}</strong></div>
+                    <div>التاريخ: <strong style="color:var(--text)">${inv.date || '—'} ${inv.time || ''}</strong></div>
+                    <div>المكان: <strong style="color:var(--text)">${inv.venue || '—'}</strong></div>
+                    <div>الصور: <strong style="color:var(--text)">${(inv.photos || []).length}</strong></div>
+                    <div>الردود: <strong style="color:var(--text)">${rsvps.length}</strong> (${rsvps.filter(r => r.attending === 'yes').length} يحضرون)</div>
+                    <div>الرابط: <a href="${(API || '')}/v/${id}" target="_blank" style="color:var(--gold)">${(API || '')}/v/${id}</a></div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-ghost" onclick="closeModal()">إغلاق</button>
+                    <a href="${(API || '')}/v/${id}" target="_blank" class="btn btn-gold">فتح الدعوة</a>
+                </div>
+            `);
+        }
+
+        async function deleteInvite(id) {
+            if (!confirm('هل أنت متأكد من حذف هذه الدعوة؟')) return;
+            try {
+                const r = await fetch(api('/api/invite/' + id), { method: 'DELETE' });
+                invitesCache = invitesCache.filter(i => i.id !== id);
+                localStorage.setItem('ws_invites', JSON.stringify(invitesCache));
+                renderInvites();
+                addLog('delete', 'تم حذف دعوة #' + id);
+                toast('تم الحذف', 'success');
+            } catch (e) {
+                // Server may not support DELETE — remove locally
+                invitesCache = invitesCache.filter(i => i.id !== id);
+                localStorage.setItem('ws_invites', JSON.stringify(invitesCache));
+                renderInvites();
+                addLog('delete', 'تم حذف دعوة #' + id + ' (محلي)');
+                toast('تم الحذف محلياً (الخادم لا يدعم DELETE)', 'success');
+            }
+        }
+
+        // ===== RSVPs =====
+        let allRsvps = [];
+        let rsvpFilter = 'all';
+
+        async function loadAllRsvps() {
+            allRsvps = [];
+            for (const inv of invitesCache) {
+                try {
+                    const r = await fetch(api('/api/rsvps/' + inv.id));
+                    const list = await r.json();
+                    list.forEach(e => {
+                        allRsvps.push({ ...e, inviteLabel: `${inv.groom} & ${inv.bride}`, inviteId: inv.id });
+                    });
+                } catch {}
+            }
+            renderRsvps();
+        }
+
+        function filterRsvp(f, btn) {
+            rsvpFilter = f;
+            document.querySelectorAll('#page-rsvps .tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            renderRsvps();
+        }
+
+        function renderRsvps() {
+            const body = document.getElementById('rsvpsBody');
+            const filtered = allRsvps.filter(r => rsvpFilter === 'all' || r.attending === rsvpFilter);
+
+            const yes = allRsvps.filter(r => r.attending === 'yes').length;
+            const no = allRsvps.filter(r => r.attending === 'no').length;
+            document.getElementById('rsvpTotal').textContent = allRsvps.length;
+            document.getElementById('rsvpYes').textContent = yes;
+            document.getElementById('rsvpNo').textContent = no;
+            document.getElementById('statRsvps').textContent = allRsvps.length;
+            document.getElementById('statYes').textContent = yes;
+            document.getElementById('statNo').textContent = no;
+
+            if (!filtered.length) {
+                body.innerHTML = '<tr><td colspan="4" class="empty"><div class="icon">📭</div><p>لا توجد ردود</p></td></tr>';
+                return;
+            }
+
+            body.innerHTML = filtered.map(r => `
+                <tr>
+                    <td><strong>${r.name}</strong></td>
+                    <td>${r.attending === 'yes'
+                        ? '<span class="badge badge-green">✅ سيحضر</span>'
+                        : '<span class="badge badge-red">❌ لن يحضر</span>'}</td>
+                    <td>${r.inviteLabel || '—'}</td>
+                    <td>${r.at ? new Date(r.at).toLocaleString('ar') : '—'}</td>
+                </tr>
+            `).join('');
+        }
+
+        // ===== Publish =====
+        async function publishInvite() {
+            const groom = document.getElementById('pubGroom').value.trim();
+            const bride = document.getElementById('pubBride').value.trim();
+            if (!groom || !bride) { toast('أدخل اسم العريس والعروس', 'error'); return; }
+
+            const btn = document.getElementById('publishBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ جاري النشر...';
+
+            const photosRaw = document.getElementById('pubPhotos').value.trim();
+            const photos = photosRaw ? photosRaw.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 9) : [];
+
+            const occasionValue = document.getElementById('pubOccasion').value;
+            const occasionLabels = {
+                wedding: 'زفاف', engagement: 'خطوبة', henna: 'حنة',
+                birthday: 'عيد ميلاد', graduation: 'تخرج', other: 'مناسبة خاصة'
+            };
+
+            const payload = {
+                groom, bride,
+                occasion: occasionValue,
+                occasionLabel: occasionLabels[occasionValue] || occasionValue,
+                occasionName: document.getElementById('pubOccasionName').value.trim(),
+                date: document.getElementById('pubDate').value,
+                time: document.getElementById('pubTime').value,
+                venue: document.getElementById('pubVenue').value.trim(),
+                address: document.getElementById('pubAddress').value.trim(),
+                phone: document.getElementById('pubPhone').value.trim(),
+                mapUrl: document.getElementById('pubMap').value.trim(),
+                message: document.getElementById('pubMessage').value.trim(),
+                story: document.getElementById('pubStory').value.trim(),
+                theme: document.getElementById('pubTheme').value,
+                music: { url: document.getElementById('pubMusic').value.trim() },
+                photos
+            };
+
+            try {
+                const r = await fetch(api('/api/invite'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const d = await r.json();
+                if (d.error) throw new Error(d.error);
+
+                saveInviteToLocal({ ...payload, id: d.id, createdAt: new Date().toISOString() });
+                addLog('invite', `دعوة جديدة: ${groom} & ${bride} → ${d.fullUrl || d.url}`);
+                toast('تم نشر الدعوة بنجاح!', 'success');
+
+                const link = (API || '') + d.url;
+                document.getElementById('publishResult').innerHTML = `
+                    <div style="background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);border-radius:10px;padding:16px;">
+                        <strong style="color:var(--green)">✅ تم النشر بنجاح!</strong>
+                        <div style="margin-top:8px;font-size:14px;">
+                            رابط الدعوة:
+                            <a href="${link}" target="_blank" style="color:var(--gold);word-break:break-all;" id="resultLink">${link}</a>
+                        </div>
+                        <div style="margin-top:10px;display:flex;gap:8px;">
+                            <button class="btn btn-gold btn-sm" onclick="navigator.clipboard.writeText('${link}');toast('تم نسخ الرابط','success')">📋 نسخ الرابط</button>
+                            <a href="${link}" target="_blank" class="btn btn-ghost btn-sm">👁 فتح الدعوة</a>
+                        </div>
+                    </div>
+                `;
+            } catch (e) {
+                addLog('error', 'فشل النشر: ' + e.message);
+                toast('خطأ: ' + e.message, 'error');
+                document.getElementById('publishResult').innerHTML = `
+                    <div style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:10px;padding:16px;color:var(--red);">
+                        ❌ ${e.message}
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🚀 نشر الدعوة';
+            }
+        }
+
+        function clearPublishForm() {
+            ['pubGroom','pubBride','pubOccasionName','pubVenue','pubAddress','pubPhone','pubMap','pubMessage','pubStory','pubMusic','pubPhotos'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('pubDate').value = '';
+            document.getElementById('publishResult').innerHTML = '';
+        }
+
+        // ===== Load All =====
+        async function loadAll() {
+            await checkHealthSilent();
+            renderInvites();
+            await loadAllRsvps();
+            renderLogs();
+            renderDashLog();
+        }
+
+        async function checkHealthSilent() {
+            try {
+                const r = await fetch(api('/api/health'));
+                const d = await r.json();
+                document.getElementById('statusDot').classList.add('online');
+                document.getElementById('statusText').textContent = 'متصل — ' + (d.db === 'pg' ? 'PostgreSQL' : 'JSON محلي');
+                document.getElementById('storageMode').value = d.db === 'pg' ? 'PostgreSQL' : 'ملفات JSON محلية';
+                document.getElementById('infoStorage').textContent = d.db === 'pg' ? 'PostgreSQL' : 'ملفات JSON محلية';
+                document.getElementById('infoServer').textContent = API;
+            } catch {
+                document.getElementById('statusDot').classList.remove('online');
+                document.getElementById('statusText').textContent = 'غير متصل';
+            }
+        }
+
+        // ===== Modal =====
+        function openModal(html) {
+            document.getElementById('modalBox').innerHTML = html;
+            document.getElementById('modalOverlay').classList.add('open');
+        }
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('open');
+        }
+
+        function confirmWipe() {
+            openModal(`
+                <h3>⚠️ تأكيد الحذف</h3>
+                <p style="font-size:14px;color:var(--text-soft);line-height:1.8;">
+                    سيتم حذف جميع الدعوات وردود الحضور المحفوظة محلياً في لوحة التحكم.
+                    <br><br>
+                    <strong style="color:var(--red)">لا يمكن التراجع عن هذه العملية.</strong>
+                </p>
+                <div class="modal-actions">
+                    <button class="btn btn-ghost" onclick="closeModal()">إلغاء</button>
+                    <button class="btn btn-red" onclick="wipeAll()">حذف نهائي</button>
+                </div>
+            `);
+        }
+
+        function wipeAll() {
+            localStorage.removeItem('ws_invites');
+            invitesCache = [];
+            renderInvites();
+            addLog('delete', 'تم مسح جميع البيانات من لوحة التحكم');
+            closeModal();
+            toast('تم المسح', 'success');
+        }
+
+        // ===== Init =====
+        document.getElementById('apiBase').value = API;
+        renderLogs();
+        renderDashLog();
+        loadAll();
+    </script>
+</body>
+</html>
